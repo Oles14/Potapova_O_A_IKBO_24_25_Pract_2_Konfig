@@ -1,23 +1,48 @@
 
+
 "Главный модуль анализатора зависимостей."
 
+from src.apk_index import get_direct_dependencies
 from src.config import Config, parse_config
 
 
-def display_config(config: Config) -> None:
-    "Показать все параметры в формате ключ-значение."
-    print("Параметры анализатора зависимостей:")
-    print(f"package: {config.package}")
-    print(f"repository: {config.repository}")
-    print(f"test_mode: {config.test_mode}")
-    print(f"version: {config.version}")
-    print(f"ascii_tree: {config.ascii_tree}")
+def display_dependencies(
+    config: Config,
+    dependencies: list[str]
+) -> None:
+    "Вывести прямые зависимости пакета."
+    print(f"Пакет: {config.package}")
+    print(f"Версия: {config.version}")
+    print("Прямые зависимости:")
+
+    if not dependencies:
+        print("Зависимости отсутствуют.")
+        return
+
+    for dependency in dependencies:
+        print(f"- {dependency}")
 
 
 def main() -> None:
-    "Запустить первый этап приложения."
+    "Запустить анализ прямых зависимостей."
     config = parse_config()
-    display_config(config)
+
+    if config.test_mode:
+        raise SystemExit(
+            "Тестовый режим с локальным графом "
+            "будет реализован на этапе 3."
+        )
+
+    try:
+        dependencies = get_direct_dependencies(
+            repository_url=config.repository,
+            package_name=config.package,
+            package_version=config.version,
+        )
+    except ValueError as error:
+        raise SystemExit(f"Ошибка: {error}") from error
+
+    display_dependencies(config, dependencies)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 
-"Чтение и проверка параметров командной строки."
+"""Чтение и проверка параметров командной строки."""
 
 import argparse
 import re
@@ -14,17 +14,18 @@ VERSION_PATTERN = r"[A-Za-z0-9][A-Za-z0-9._+~-]*"
 
 @dataclass(frozen=True)
 class Config:
-    "Настройки анализатора зависимостей."
+    """Настройки анализатора зависимостей."""
 
     package: str
     repository: str
     test_mode: bool
     version: str
     ascii_tree: bool
+    load_order: bool = False
 
 
 def create_parser() -> argparse.ArgumentParser:
-    "Создать парсер аргументов командной строки."
+    """Создать парсер аргументов командной строки."""
     parser = argparse.ArgumentParser(
         description="Анализатор зависимостей пакетов Alpine Linux"
     )
@@ -37,11 +38,15 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--ascii-tree", action="store_true"
     )
+    parser.add_argument(
+        "--load-order", action="store_true",
+        help="Вывести порядок загрузки зависимостей"
+    )
     return parser
 
 
 def validate_package(package: str) -> None:
-    "Проверить корректность имени пакета."
+    """Проверить корректность имени пакета."""
     if not re.fullmatch(PACKAGE_PATTERN, package):
         raise ValueError(
             "Имя пакета содержит недопустимые символы."
@@ -49,7 +54,7 @@ def validate_package(package: str) -> None:
 
 
 def validate_version(version: str) -> None:
-    "Проверить корректность записи версии."
+    """Проверить корректность записи версии."""
     if not re.fullmatch(VERSION_PATTERN, version):
         raise ValueError(
             "Версия пакета имеет недопустимый формат."
@@ -59,7 +64,7 @@ def validate_version(version: str) -> None:
 def validate_repository(
     repository: str, test_mode: bool
 ) -> None:
-    "Проверить URL или путь к тестовому файлу."
+    """Проверить URL или путь к тестовому файлу."""
     if test_mode:
         path = Path(repository)
         if not path.is_file():
@@ -88,7 +93,7 @@ def validate_repository(
 def parse_config(
     args: list[str] | None = None,
 ) -> Config:
-    "Получить проверенную конфигурацию."
+    """Получить проверенную конфигурацию."""
     parser = create_parser()
     values = parser.parse_args(args)
 
@@ -107,4 +112,5 @@ def parse_config(
         test_mode=values.test_mode,
         version=values.version,
         ascii_tree=values.ascii_tree,
+        load_order=values.load_order,
     )
